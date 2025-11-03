@@ -5,13 +5,13 @@ import DetailAnalysis from './pages/DetailAnalysis.jsx'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800">
+    <div className="min-h-screen bg-gray-50 text-gray-800">
 
       {/* Routing Halaman */}
       <main className="p-6">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/detail" element={<DetailAnalysis />} />
+          <Route path="/detail/:id" element={<DetailAnalysis />} />
         </Routes>
       </main>
     </div>
