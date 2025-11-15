@@ -14,6 +14,58 @@ const DetailAnalysis = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [analysisData, setAnalysisData] = useState(null);
 
+  {/* Fungsi untuk menghasilkan rekomendasi berdasarkan data analisis */}
+  const generateRekomendasi = (data) => {
+    if (!data) return 'Data tidak tersedia.';
+
+    const rekomendasi = [];
+
+        // Batas standar SNI Kompos
+        const standar = {
+          suhu: { min: 0, max: 30 },         // °C
+          ph: { min: 6.80, max: 7.49 },
+          kadar_air: { min: 0, max: 50 },   // %
+          nitrogen: { min: 0.4, max: 3.5 },   // %
+          fosfor: { min: 0.1, max: 1.5 },    // %
+          kalium: { min: 0.2, max: 2.5 },    // %
+        };
+
+        // Logika pengecekan
+        if (data.ph < standar.ph.min)
+          rekomendasi.push('pH terlalu asam — Tambahkan kapur pertanian 1-5 kg/ton atau abu kayu.'); //fix
+        else if (data.ph > standar.ph.max)
+          rekomendasi.push('pH terlalu basa — Tambahkan belerang atau bahan organik asam (serbuk gergaji pinus, ampas kopi).'); //fix
+        
+        if (data.kadar_air < standar.kadar_air.min)
+          rekomendasi.push('Kelembapan rendah — Tambahkan air atau bahan basah.');
+        else if (data.kadar_air > standar.kadar_air.max)
+          rekomendasi.push('Kelembapan terlalu tinggi — Lakukan pembalikan/aerasi untuk mengurangi kadar air, Tambahkan bahan kering seperti sekam, serbuk gaji, daun kering dan Keringkan di tempat teduh berventilasi baik, hindari sinar matahari langsung berlebihan .'); //fix
+
+        
+        if (data.suhu < standar.suhu.min)
+          rekomendasi.push('Tingkatkan suhu dengan menambah bahan kaya nitrogen (seperti sisa sayur atau rumput segar).');
+        else if (data.suhu > standar.suhu.max)
+          rekomendasi.push('Turunkan suhu dengan membalik tumpukan kompos dan Pastikan aerasi cukup agar tidak anaerob .'); //fix
+
+        
+
+        if (data.kadar_n < standar.nitrogen.min)        
+          rekomendasi.push('Kandungan Nitrogen rendah — Tingkatkan Nitrogen dengan kotoran ayam/kambing, tepung darah, dan leguminosa.');
+        if (data.kadar_p < standar.fosfor.min)
+          rekomendasi.push('Kandungan Fosfor rendah — Tingkatkan Fosfor dengan fosfat alam, tepung tulang, dan guano.');
+        if (data.kadar_k < standar.kalium.min)
+          rekomendasi.push('Kandungan Kalium rendah — Tingkatkan Kalium dengan abu kayu, abu sabut kelapa, dan kotoran kelinci.');
+
+        return rekomendasi.length > 0 ? (
+  <ol className="list-decimal pl-5 space-y-1">
+    {rekomendasi.map((item, index) => (
+      <li key={index}>{item}</li>
+    ))}
+  </ol>
+) : (
+  <p>Semua parameter kompos sudah sesuai standar SNI. Tidak perlu penambahan bahan.</p>
+)};
+
   useEffect(() => {
     let mounted = true;
     const fetchById = async () => {
@@ -70,18 +122,73 @@ const DetailAnalysis = () => {
   };
 
   const mm = analysisData ?? {};
+  const clampValue = (value, min, max) => {
+  if (value === null || value === undefined || value === '-') return '-';
+  const num = Number(value);
+  if (isNaN(num)) return '-';
+  return Math.min(Math.max(num, min), max);
+  };
+
   const sliderData = [
-    { label: 'pH:', currentValue: mm.ph ?? '-', minValue: 6, maxValue: 8, standardMin: '6.80', standardMax: '7.49', unit: '' },
-    { label: 'Kadar air:', currentValue: mm.kadar_air ?? '-', minValue: 40, maxValue: 60, standardMin: null, standardMax: '50', unit: '%' },
-    { label: 'Suhu:', currentValue: mm.suhu ?? '-', minValue: 20, maxValue: 40, standardMin: null, standardMax: '30', unit: '°C' },
+    {
+      label: 'pH:',
+      currentValue: clampValue(mm.ph, 6, 8),
+      minValue: 6,
+      maxValue: 8,
+      standardMin: '6.80',
+      standardMax: '7.49',
+      unit: ''
+    },
+    {
+      label: 'Kadar air:',
+      currentValue: clampValue(mm.kadar_air, 40, 60),
+      minValue: 40,
+      maxValue: 60,
+      standardMin: null,
+      standardMax: '50',
+      unit: '%'
+    },
+    {
+      label: 'Suhu:',
+      currentValue: clampValue(mm.suhu, 20, 40),
+      minValue: 20,
+      maxValue: 40,
+      standardMin: null,
+      standardMax: '30',
+      unit: '°C'
+    },
   ];
 
   const sliderDataRight = [
-    { label: 'Kadar N:', currentValue: mm.kadar_n ?? '-', minValue: 0, maxValue: 2, standardMin: '0.40', standardMax: null, unit: '%' },
-    { label: 'Kadar P:', currentValue: mm.kadar_p ?? '-', minValue: 0, maxValue: 2, standardMin: '0.10', standardMax: null, unit: '%' },
-    { label: 'Kadar K:', currentValue: mm.kadar_k ?? '-', minValue: 0, maxValue: 2, standardMin: '0.20', standardMax: null, unit: '%' },
-  ];
-
+    {
+      label: 'Kadar N:',
+      currentValue: clampValue(mm.kadar_n, 0, 2),
+      minValue: 0,
+      maxValue: 2,
+      standardMin: '0.40',
+      standardMax: null,
+      unit: '%'
+    },
+    {
+      label: 'Kadar P:',
+      currentValue: clampValue(mm.kadar_p, 0, 2),
+      minValue: 0,
+      maxValue: 2,
+      standardMin: '0.10',
+      standardMax: null,
+      unit: '%'
+    },
+    {
+      label: 'Kadar K:',
+      currentValue: clampValue(mm.kadar_k, 0, 2),
+      minValue: 0,
+      maxValue: 2,
+      standardMin: '0.20',
+      standardMax: null,
+      unit: '%'
+    },
+  ];  
+  
   return (
     <div
       className="full-screen bg-gray-50"
@@ -159,34 +266,56 @@ const DetailAnalysis = () => {
           </div>
 
           {/* Keterangan Section */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-sm font-semibold text-gray-800">KETERANGAN</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-lg shadow flex flex-col">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 className="text-sm font-semibold text-gray-800">KETERANGAN</h2>
+              </div>
+
+              {/* Konten Utama */}
+              <div className="p-6 flex flex-col flex-grow">
+                {isLoading ? (
+                  <>
+                    <div className="h-24 bg-gray-200 rounded animate-pulse mb-4" />
+                  </>
+                ) : isEditing ? (
+                  <>
+                    <textarea
+                      value={keterangan}
+                      onChange={(e) => setKeterangan(e.target.value)}
+                      className="w-full flex-grow min-h-40 p-3 border border-gray-300 rounded text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 resize-none"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-700 leading-relaxed mb-6 flex-grow">
+                      {analysisData?.keterangan ?? '—'}
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
 
-            <div className="p-6">
-              {isLoading ? (
-                <>
+            {/* Rekomendasi Section */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 className="text-sm font-semibold text-gray-800">REKOMENDASI</h2>
+              </div>
+
+              <div className="p-6">
+                {isLoading ? (
                   <div className="h-24 bg-gray-200 rounded animate-pulse mb-4" />
-                  <div className="w-40 h-10 bg-gray-200 rounded animate-pulse" />
-                </>
-              ) : isEditing ? (
-                <>
-                  <textarea
-                    value={keterangan}
-                    onChange={(e) => setKeterangan(e.target.value)}
-                    className="w-full h-40 p-3 border border-gray-300 rounded text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                  />
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-gray-700 leading-relaxed mb-6">
-                    {analysisData?.keterangan ?? '—'}
-                  </p>
-                </>
-              )}
+                ) : (
+                  <div>
+                    <div className="text-sm text-gray-700 leading-relaxed mb-6">
+                      {generateRekomendasi(analysisData)}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
 
           {/* Button Back */}
           <div className="mt-5">

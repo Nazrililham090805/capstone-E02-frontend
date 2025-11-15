@@ -41,7 +41,7 @@ const LatestReading = ({ title, data, isStandard = false, isLoading = false }) =
               {/* label placeholder */}
               <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
               {/* value placeholder */}
-              <div className="w-24 h-4 bg-gray-200 rounded animate-pulse" />
+              <div className="w-20 h-4 bg-gray-200 rounded animate-pulse" />
             </div>
           ))}
         </div>
